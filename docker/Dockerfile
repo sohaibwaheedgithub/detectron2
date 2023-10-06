@@ -3,7 +3,14 @@ FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu18.04
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y \
+    python3.8 python3.8-dev python3.8-distutils \
 	python3-opencv ca-certificates python3-dev git wget sudo ninja-build
+
+# Make python3 available for python3.8
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 2
+RUN update-alternatives --config python3
+# Make python available for python3.8
 RUN ln -sv /usr/bin/python3 /usr/bin/python
 
 # create a non-root user
@@ -14,11 +21,13 @@ USER appuser
 WORKDIR /home/appuser
 
 ENV PATH="/home/appuser/.local/bin:${PATH}"
-RUN wget https://bootstrap.pypa.io/pip/3.6/get-pip.py && \
-	python3 get-pip.py --user && \
+RUN wget https://bootstrap.pypa.io/pip/get-pip.py && \
+	python3.8 get-pip.py --user && \
 	rm get-pip.py
 
 # install dependencies
+# Important! Otherwise, it uses existing numpy from host-modules which throws error
+RUN pip install --user numpy==1.20.3
 # See https://pytorch.org/ for other options if you use a different version of CUDA
 RUN pip install --user tensorboard cmake onnx   # cmake from apt-get is too old
 RUN pip install --user torch==1.10 torchvision==0.11.1 -f https://download.pytorch.org/whl/cu111/torch_stable.html
@@ -34,14 +43,34 @@ ARG TORCH_CUDA_ARCH_LIST="Kepler;Kepler+Tesla;Maxwell;Maxwell+Tegra;Pascal;Volta
 ENV TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}"
 
 RUN pip install --user -e detectron2_repo
+RUN pip install av
+RUN pip install scipy
+RUN pip install opencv_python
 
 # Set a fixed model cache directory.
 ENV FVCORE_CACHE="/tmp"
-WORKDIR /home/appuser/detectron2_repo
+WORKDIR /home/appuser/detectron2_repo/projects/DensePose
+RUN wget https://dl.fbaipublicfiles.com/densepose/densepose_rcnn_R_50_FPN_s1x/165712039/model_final_162be9.pkl
+RUN wget http://images.cocodataset.org/val2017/000000439715.jpg -O input.jpg
+
+
+CMD python mod_apply_net.py show configs/densepose_rcnn_R_50_FPN_s1x.yaml model_final_162be9.pkl input.jpg dp_segm -v
 
 # run detectron2 under user "appuser":
 # wget http://images.cocodataset.org/val2017/000000439715.jpg -O input.jpg
+
 # python3 demo/demo.py  \
+     
 	#--config-file configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml \
 	#--input input.jpg --output outputs/ \
 	#--opts MODEL.WEIGHTS detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl
+
+
+
+
+            
+   
+    
+
+
+
