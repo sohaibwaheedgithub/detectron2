@@ -49,8 +49,6 @@ RUN pip install av
 RUN pip install scipy
 RUN pip install opencv_python
 
-RUN apt install imagemagick && choco install vcxsrc
-RUN echo "export DISPLAY=:0.0" >> ~/.bashrc && source ~/.bashrc
 
 # Set a fixed model cache directory.
 ENV FVCORE_CACHE="/tmp"
