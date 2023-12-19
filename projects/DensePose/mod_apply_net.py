@@ -108,7 +108,7 @@ class InferenceAction(Action):
         RUN = True        
         while RUN:
             file_name = input("Enter image path: ")
-            file_name = os.path.join(os.getcwd(), file_name)
+            #file_name = os.path.join(os.getcwd(), file_name)
             img = read_image(file_name, format="BGR")  # predictor expects BGR image.
             with torch.no_grad():
                 outputs = predictor(img)["instances"]
