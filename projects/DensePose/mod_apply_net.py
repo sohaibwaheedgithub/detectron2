@@ -98,17 +98,16 @@ class InferenceAction(Action):
             logger.warning(f"No input images for {args.input}")
             return
         context = cls.create_context(args, cfg)
-        '''for file_name in file_list:
+        for file_name in file_list:
             img = read_image(file_name, format="BGR")  # predictor expects BGR image.
             with torch.no_grad():
                 outputs = predictor(img)["instances"]
-                cls.execute_on_outputs(context, {"file_name": file_name, "image": img}, outputs)'''
+                cls.execute_on_outputs(context, {"file_name": file_name, "image": img}, outputs)
         
-        import os
+        '''import os
         RUN = True        
         while RUN:
             file_name = input("Enter image path: ")
-            #file_name = os.path.join(os.getcwd(), file_name)
             img = read_image(file_name, format="BGR")  # predictor expects BGR image.
             with torch.no_grad():
                 outputs = predictor(img)["instances"]
@@ -117,7 +116,7 @@ class InferenceAction(Action):
             if ans.lower() == 'y':
                 RUN = True
             else:
-                RUN = False
+                RUN = False'''
 
         cls.postexecute(context)
 
@@ -300,18 +299,17 @@ class ShowAction(InferenceAction):
         image = np.zeros(shape=image.shape, dtype=np.uint8)
         data = extractor(outputs)
         image_vis = visualizer.visualize(image, data)
-        image_vis = cv2.cvtColor(image_vis, cv2.COLOR_BGR2RGB)
-        pil_image = Image.fromarray(image_vis, mode='RGB')
-        pil_image.show()
-        '''
         entry_idx = context["entry_idx"] + 1
         out_fname = cls._get_out_fname(entry_idx, context["out_fname"])
         out_dir = os.path.dirname(out_fname)
         if len(out_dir) > 0 and not os.path.exists(out_dir):
             os.makedirs(out_dir)
+        _, img_name = os.path.split(image_fpath)
+        root, _ = os.path.split(out_fname)
+        out_fname = os.path.join(root, img_name)
         cv2.imwrite(out_fname, image_vis)
         logger.info(f"Output saved to {out_fname}")
-        context["entry_idx"] += 1'''
+        context["entry_idx"] += 1
 
     @classmethod
     def postexecute(cls: type, context: Dict[str, Any]):
