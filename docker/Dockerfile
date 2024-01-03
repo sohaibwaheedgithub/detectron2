@@ -35,8 +35,8 @@ RUN pip install --user torch==1.10 torchvision==0.11.1 -f https://download.pytor
 RUN pip install --user 'git+https://github.com/facebookresearch/fvcore'
 # install detectron2
 #RUN git clone https://github.com/facebookresearch/detectron2 detectron2_repo
-ARG CACHEBUST=2
-RUN git clone https://github.com/sohaibwaheedgithub/detectron2 detectron2_repo
+ARG CLONE_REPO=0
+RUN if [ "${CLONE_REPO}" = "0" ]; then git clone https://github.com/sohaibwaheedgithub/detectron2 detectron2_repo; fi
 
 # set FORCE_CUDA because during `docker build` cuda is not accessible
 ENV FORCE_CUDA="1"
@@ -58,9 +58,9 @@ RUN wget https://dl.fbaipublicfiles.com/densepose/densepose_rcnn_R_50_FPN_s1x/16
 RUN wget http://images.cocodataset.org/val2017/000000439715.jpg -O input.jpg
 
 
+RUN mkdir -m 777 -p dataset/image dataset/image-densepose
+CMD python mod_apply_net.py show configs/densepose_rcnn_R_50_FPN_s1x.yaml model_final_162be9.pkl dataset/image dp_segm --output dataset/image-densepose/output.jpg -v
 
-
-CMD python mod_apply_net.py show configs/densepose_rcnn_R_50_FPN_s1x.yaml model_final_162be9.pkl input.jpg dp_segm -v
 
 # run detectron2 under user "appuser":
 # wget http://images.cocodataset.org/val2017/000000439715.jpg -O input.jpg
@@ -70,13 +70,3 @@ CMD python mod_apply_net.py show configs/densepose_rcnn_R_50_FPN_s1x.yaml model_
 	#--config-file configs/COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml \
 	#--input input.jpg --output outputs/ \
 	#--opts MODEL.WEIGHTS detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl
-
-
-
-
-            
-   
-    
-
-
-

@@ -94,16 +94,31 @@ class InferenceAction(Action):
         predictor = DefaultPredictor(cfg)
         logger.info(f"Loading data from {args.input}")
         file_list = cls._get_input_file_list(args.input)
-        if len(file_list) == 0:
+        '''if len(file_list) == 0:
             logger.warning(f"No input images for {args.input}")
-            return
+            return'''
         context = cls.create_context(args, cfg)
-        for file_name in file_list:
+        '''for file_name in file_list:
             img = read_image(file_name, format="BGR")  # predictor expects BGR image.
             with torch.no_grad():
                 outputs = predictor(img)["instances"]
                 cls.execute_on_outputs(context, {"file_name": file_name, "image": img}, outputs)
+        '''
         
+        while True:
+            file_list = cls._get_input_file_list(args.input)
+            not_empty = bool(len(file_list))
+            
+            if not_empty:
+                img = read_image(file_list[0], format="BGR")  # predictor expects BGR image.
+                with torch.no_grad():
+                    outputs = predictor(img)["instances"]
+                    cls.execute_on_outputs(context, {"file_name": file_list[0], "image": img}, outputs)
+                while True:
+                    file_list = cls._get_input_file_list(args.input)
+                    if not file_list:
+                        break
+    
         '''import os
         RUN = True        
         while RUN:
